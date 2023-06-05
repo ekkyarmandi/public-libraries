@@ -34,6 +34,7 @@ class BorrowedBook(models.Model):
 class BorrowReturnRequest(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     borrowed_book = models.ForeignKey(BorrowedBook, on_delete=models.SET_NULL, null=True)
+    related_book = models.ForeignKey(Book, on_delete=models.CASCADE, null=True)
     requested_by = models.ForeignKey(Account, on_delete=models.CASCADE)
     created = models.DateTimeField(auto_now_add=True, null=True, blank=True)
     updated = models.DateTimeField(auto_now=True, null=True, blank=True)

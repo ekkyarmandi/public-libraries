@@ -1,11 +1,9 @@
 from rest_framework import viewsets
-from accounts.models import Account
 from public_libraries.models import Book, BorrowedBook, BorrowReturnRequest
-from public_libraries.serializers import BookSerializer, BorrowedBookSerializer
+from public_libraries.serializers import BookSerializer
 from rest_framework.response import Response
 from rest_framework import status
-from rest_framework.generics import UpdateAPIView, GenericAPIView
-from django.utils import timezone
+from rest_framework.generics import GenericAPIView
 
 
 class BookViewSet(viewsets.ModelViewSet):
@@ -26,14 +24,34 @@ class BookViewSet(viewsets.ModelViewSet):
 
 class BorrowBook(GenericAPIView):
     def get(self, request, *args, **kwargs):
-        try:
-            borrowed_books = BorrowedBook.objects.filter(
-                related_user=request.user, is_returned=False
+        books = []
+        # get user unprocessed requests
+        user_requests = BorrowReturnRequest.objects.filter(
+            requested_by=request.user, is_approved=False, is_rejected=False
+        )
+        for r in user_requests:
+            books.append(
+                {
+                    "id": r.related_book.id,
+                    "stock": r.related_book.stock,
+                    "status": "pending",
+                }
             )
-            borrowed = [BookSerializer(b.related_book).data for b in borrowed_books]
-            return Response(borrowed)
-        except:
-            return Response([])
+        # get user borrowed books
+        user_borrowed_books = BorrowedBook.objects.filter(
+            related_user=request.user, is_returned=False
+        )
+        for r in user_borrowed_books:
+            if r.related_book.id not in [b["id"] for b in books]:
+                books.append(
+                    {
+                        "id": r.related_book.id,
+                        "stock": r.related_book.stock,
+                        "status": "borrowed",
+                    }
+                )
+        # return the book id and it's status
+        return Response(books)
 
     def patch(self, request, *args, **kwargs):
         book = Book.objects.get(id=kwargs["pk"])
@@ -58,7 +76,7 @@ class BorrowBook(GenericAPIView):
             try:
                 request = BorrowReturnRequest.objects.get(
                     requested_by=request.user,
-                    borrowed_book__related_book=book,
+                    related_book=book,
                     action="borrow",
                     is_approved=False,
                 )
@@ -71,22 +89,11 @@ class BorrowBook(GenericAPIView):
 
             # check if user already borrowed this book or not
             if len(borrowed) <= 3 and book not in borrowed:
-                # BorrowedBook.objects.create(
-                #     related_book=book, related_user=request.user
-                # )
-                # book.stock -= 1
-                # book.save()
-                # borrowed_book = BorrowedBook.objects.filter(
-                #     related_user=request.user, is_returned=False
-                # )
-                # borrowed = [BookSerializer(b.related_book).data for b in borrowed_book]
-                # return Response(borrowed, status=status.HTTP_200_OK)
-
-                # Todo: Make a request to admin
                 BorrowReturnRequest.objects.create(
                     borrowed_book=BorrowedBook.objects.create(
                         related_book=book, related_user=request.user
                     ),
+                    related_book=book,
                     requested_by=request.user,
                     action="borrow",
                 )
@@ -109,17 +116,22 @@ class ReturnBook(GenericAPIView):
     def patch(self, request, *args, **kwargs):
         book = Book.objects.get(id=kwargs["pk"])
         try:
+            # borrowed_book = BorrowedBook.objects.get(
+            #     related_book=book, related_user=request.user, is_returned=False
+            # )
+            # borrowed_book.is_returned = True
+            # borrowed_book.returned_date = timezone.now()
+            # borrowed_book.save()
+            # book.stock += 1
+            # book.save()
+            # serializer = BookSerializer(book, many=False)
+            # return Response(serializer.data)
+
             # Todo: Make a request to admin
-            borrowed_book = BorrowedBook.objects.get(
-                related_book=book, related_user=request.user, is_returned=False
+            return Response(
+                {"message": "Request sent to admin."},
+                status=status.HTTP_200_OK,
             )
-            borrowed_book.is_returned = True
-            borrowed_book.returned_date = timezone.now()
-            borrowed_book.save()
-            book.stock += 1
-            book.save()
-            serializer = BookSerializer(book, many=False)
-            return Response(serializer.data)
         except Exception as err:
             return Response(
                 {"message": "You didn't borrow this book.", "error": str(err)},
@@ -135,8 +147,8 @@ class AdminHandleRequest(GenericAPIView):
         if admin_action == "approve":
             request_entries.is_approved = True
             request_entries.borrowed_book.is_borrowed = True
-            request_entries.borrowed_book.related_book.stock -= 1
-            request_entries.borrowed_book.related_book.save()
+            request_entries.related_book.stock -= 1
+            request_entries.related_book.save()
             request_entries.borrowed_book.save()
             request_entries.save()
         elif admin_action == "reject":

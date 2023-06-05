@@ -7,7 +7,14 @@ async function borrowBook(bookId) {
     },
   });
   const data = await response.json();
-  console.log(response, data); // render the message to the user
+  if (response.status == 200) {
+    const bookContainer = document.getElementById(bookId);
+    const borrowBtn = bookContainer.querySelector('#borrow-return-btn');
+    borrowBtn.setAttribute('onclick', `returnBook('${bookId}')`);
+    borrowBtn.classList.replace('btn-success', 'btn-primary');
+    borrowBtn.innerHTML = "Request Sent";
+  }
+  alert(data.message);
 }
 
 async function getBorrowedBook() {
@@ -15,19 +22,27 @@ async function getBorrowedBook() {
     method: 'GET',
   });
   const data = await response.json();
-  const borrowedBooks = document.getElementById('borrowed-books');
-  borrowedBooks.innerHTML = data.length;
   data.map(updateBook);
+
+  // count for data.status == borrowed
+  const numberOfBorrowed = data.filter(book => book.status == "borrowed");
+  const borrowedBooks = document.getElementById('borrowed-books');
+  borrowedBooks.innerHTML = numberOfBorrowed.length;
 }
 
 function updateBook(book) {
-  const bookDiv = document.getElementById(`${book.id}`);
+  const bookDiv = document.getElementById(book.id);
   if (bookDiv) {
     const actionBtn = bookDiv.querySelector('#borrow-return-btn');
     const stock = bookDiv.querySelector('#book-stock');
-    actionBtn.setAttribute('onclick', `returnBook('${book.id}')`);
     actionBtn.classList.replace('btn-success', 'btn-primary');
-    actionBtn.innerHTML = "Return";
+    if (book.status == "borrowed") {
+      actionBtn.setAttribute('onclick', `returnBook('${book.id}')`);
+      actionBtn.innerHTML = "Return";
+    } else if (book.status == "pending") {
+      actionBtn.setAttribute('onclick', `alert('You already made a request for this book.')`);
+      actionBtn.innerHTML = "Request Sent";
+    }
     stock.innerHTML = book.stock + " left";
   }
 }
