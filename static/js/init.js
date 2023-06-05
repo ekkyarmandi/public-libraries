@@ -1,0 +1,2 @@
+getBorrowedBook();
+updateActivePagination();

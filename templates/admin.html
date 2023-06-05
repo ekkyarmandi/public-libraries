@@ -1,0 +1,38 @@
+{% extends '_base.html' %}
+{% load humanize %}
+
+{% block title %}Admin{% endblock %}
+
+{% block content %}
+<div class="">
+    {% include 'admin_navbar.html' %}
+    <div class="container pt-5" style="width: 1240px">
+      <div class="d-flex justify-content-between">
+        <div class="p-3 text-primary-emphasis bg-primary-subtle border border-primary-subtle rounded-3" style="width: 250px">
+          <p class="m-0">Total Books</p>
+          <p class="m-0 fs-1">{{number_of_books|intcomma}}</p>
+        </div>
+        <div class="p-3 text-primary-emphasis bg-primary-subtle border border-primary-subtle rounded-3" style="width: 250px">
+          <p class="m-0">Total Registered Users</p>
+          <p class="m-0 fs-1">{{number_of_users}}</p>
+        </div>
+        <div class="p-3 text-primary-emphasis bg-primary-subtle border border-primary-subtle rounded-3" style="width: 250px">
+          <p class="m-0">Total Books Borrowed</p>
+          <p class="m-0 fs-1">{{number_of_borrowed}}</p>
+        </div>
+        <div class="p-3 text-primary-emphasis bg-primary-subtle border border-primary-subtle rounded-3" style="width: 250px">
+          <p class="m-0">Total Books Returned</p>
+          <p class="m-0 fs-1">{{number_of_returned}}</p>
+        </div>
+      </div>
+      <div class="pt-5">
+        <div id="borrow-book-request">
+          <h3>Borrow Book Request</h3>
+        </div>
+        <div id="return-book-request">
+          <h3>Return Book Request</h3>
+        </div>
+      </div>
+    </div>
+</div>
+{% endblock %}

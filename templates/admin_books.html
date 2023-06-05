@@ -1,0 +1,22 @@
+{% extends '_base.html' %}
+
+{% block title %}Books{% endblock title %}
+
+{% block content %}
+{% include 'admin_navbar.html' %}
+<div id="books-container" class="py-5 mx-auto" style="width: 800px">
+  <div class="d-flex gap-2 mb-3">
+    <input class="form-control" placeholder="Search">
+    <button class="btn btn-outline-primary">search</button>
+  </div>
+  <h4>All Books</h4>
+  <div class="d-flex justify-content-between">
+    <p id="loading" class="m-0">Loading...</p>
+  </div>
+</div>
+{% endblock content %}
+
+{% block script %}
+<script src="/static/js/admin_books.js"></script>
+<script src="/static/js/admin_init.js"></script>
+{% endblock script %}

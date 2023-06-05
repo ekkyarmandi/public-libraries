@@ -1,0 +1,33 @@
+{% extends '_base.html' %}
+
+{% block title %}Users{% endblock title %}
+
+{% block content %}
+{% include 'admin_navbar.html' %}
+<div class="pt-5 mx-auto" style="width: 800px">
+  <h3>Table of Registered Users</h3>
+  <table class="table">
+    <thead>
+      <tr>
+        <th>Email</th>
+        <th>Books Borrowed</th>
+        <th>Date Join</th>
+        <th>Last Login</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for u in users %}
+      <tr>
+        <td>{{ u.email }}</td>
+        <td>{{ u.borrowed_book }}</td>
+        <td>{{ u.date_joined }}</td>
+        <td>{{ u.last_login }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock content %}
+
+{% block script %}
+{% endblock script %}

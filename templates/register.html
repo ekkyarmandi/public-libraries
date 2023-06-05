@@ -1,0 +1,38 @@
+{% extends '_base.html' %}
+
+{% block title %}Register{% endblock title%}
+
+{% block content %}
+<div class="container d-flex align-items-center justify-content-center" style="height: 100vh">
+  <form class="d-flex flex-column gap-2 w-25 border rounded p-3 mx-auto  bg-white" action="{% url 'register' %}" method="post">
+    {% csrf_token %}
+    <h1 class="text-primary">Register</h1>
+    <div class="form-group">
+      <label for="fullname">Full Name</label>
+      <input name="fullname" id="fullname" required type="text" class="form-control">
+    </div>
+    <div class="form-group">
+      <label for="email">Email</label>
+      <input name="email" id="email" required type="email" class="form-control">
+    </div>
+    <div class="form-group">
+      <label for="password1">Password</label>
+      <input name="password1" id="password1" required type="password" class="form-control">
+    </div>
+    <div class="form-group">
+      <label for="password2">Retype Password</label>
+      <input name="password2" id="password2" required type="password" class="form-control">
+    </div>
+    <button class="btn btn-primary" type="submit">Submit</button>
+    <p>Already have an account? <a href="/login">Login</a></p>
+    {% if messages %}
+    <div class="alert alert-dismissible alert-danger">
+      <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+      {% for message in messages %}
+      <p class="m-0 p-0">{{ message }}</p>
+      {% endfor %}
+    </div>
+    {% endif %}
+  </form>
+</div>
+{% endblock content %}
