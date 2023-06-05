@@ -17,11 +17,16 @@ async function handleRequest(element, admin_action) {
   // wait till the request is done
   const data = await response.json();
   if (response.status == 200) {
-    if (admin_action == 'approve') {
-      // update the number of borrowed/returned books
+    if (admin_action == 'approve_borrow') {
+      // update the number of borrowed books
       const borrowedBooks = document.getElementById('borrowed-books');
       borrowedBooks.innerHTML = parseInt(borrowedBooks.innerHTML) + 1;
+    } else if (admin_action == 'approve_return') {
+      // update the number of returned books
+      const returnedBooks = document.getElementById('returned-books');
+      returnedBooks.innerHTML = parseInt(returnedBooks.innerHTML) + 1;
     }
+
     // remove row from the table
     element.parentElement.parentElement.parentElement.remove();
   } else {

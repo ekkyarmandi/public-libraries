@@ -24,10 +24,12 @@ async function getBorrowedBook() {
   const data = await response.json();
   data.map(updateBook);
 
-  // count for data.status == borrowed
-  const numberOfBorrowed = data.filter(book => book.status == "borrowed");
+  // sum the value of book.value
+  const numberOfBorrowed = data.reduce((accumulator, book) => {
+    return accumulator + book.value;
+  }, 0);
   const borrowedBooks = document.getElementById('borrowed-books');
-  borrowedBooks.innerHTML = numberOfBorrowed.length;
+  borrowedBooks.innerHTML = numberOfBorrowed;
 }
 
 function updateBook(book) {

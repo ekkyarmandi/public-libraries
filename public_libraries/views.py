@@ -68,7 +68,7 @@ class AdminPage(View):
                     "number_of_books": Book.objects.count(),
                     "number_of_users": Account.objects.count() - 1,
                     "number_of_borrowed": BorrowedBook.objects.filter(
-                        is_returned=False, is_borrowed=True
+                        is_borrowed=True
                     ).count(),
                     "number_of_returned": BorrowedBook.objects.filter(
                         is_returned=True

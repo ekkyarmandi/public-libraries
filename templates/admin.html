@@ -47,7 +47,7 @@
                 <td>{{request.borrowed_book.related_book}}</td>
                 <td>
                   <div id="{{request.id}}" class="d-flex gap-1">
-                    <button class="btn btn-sm btn-success" type="button" onclick="handleRequest(this,'approve')">Confirm</button>
+                    <button class="btn btn-sm btn-success" type="button" onclick="handleRequest(this,'approve_borrow')">Confirm</button>
                     <button class="btn btn-sm btn-danger" type="button" onclick="handleRequest(this,'reject')">Reject</button>
                   </div>
                 </td>
@@ -76,7 +76,7 @@
                 <td>{{request.borrowed_book.related_book}}</td>
                 <td>
                   <div id="{{request.id}}" class="d-flex gap-1">
-                    <button class="btn btn-sm btn-success" type="button" onclick="handleRequest(this,'approve')">Confirm</button>
+                    <button class="btn btn-sm btn-success" type="button" onclick="handleRequest(this,'approve_return')">Confirm</button>
                     <button class="btn btn-sm btn-danger" type="button" onclick="handleRequest(this,'reject')">Reject</button>
                   </div>
                 </td>

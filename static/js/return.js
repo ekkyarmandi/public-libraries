@@ -7,18 +7,12 @@ async function returnBook(bookId) {
     },
   });
   const data = await response.json();
-  resetBook(bookId);
-  const borrowedBooks = document.getElementById('borrowed-books');
-  borrowedBooks.innerHTML = Number(borrowedBooks.textContent) - 1;
-}
-
-function resetBook(bookId) {
-  const bookDiv = document.getElementById(`${bookId}`);
-  const actionBtn = bookDiv.querySelector('#borrow-return-btn');
-  const stock = bookDiv.querySelector('#book-stock');
-  const bookStock = Number(stock.innerHTML.split(" ")[0]) + 1;
-  actionBtn.setAttribute('onclick', `borrowBook('${bookId}')`);
-  actionBtn.classList.replace('btn-primary', 'btn-success');
-  actionBtn.innerHTML = "Borrow";
-  stock.innerHTML = bookStock + " left";
+  if (response.status == 200) {
+    const bookContainer = document.getElementById(bookId);
+    const borrowBtn = bookContainer.querySelector('#borrow-return-btn');
+    borrowBtn.setAttribute('onclick', `alert('You already made a request for this book.')`);
+    borrowBtn.classList.replace('btn-success', 'btn-primary');
+    borrowBtn.innerHTML = "Request Sent";
+  }
+  alert(data.message);
 }

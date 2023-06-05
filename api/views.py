@@ -35,6 +35,7 @@ class BorrowBook(GenericAPIView):
                     "id": r.related_book.id,
                     "stock": r.related_book.stock,
                     "status": "pending",
+                    "value": 0 if r.action == "borrow" else 1,
                 }
             )
         # get user borrowed books
@@ -48,6 +49,7 @@ class BorrowBook(GenericAPIView):
                         "id": r.related_book.id,
                         "stock": r.related_book.stock,
                         "status": "borrowed",
+                        "value": 1
                     }
                 )
         # return the book id and it's status
@@ -116,18 +118,14 @@ class ReturnBook(GenericAPIView):
     def patch(self, request, *args, **kwargs):
         book = Book.objects.get(id=kwargs["pk"])
         try:
-            # borrowed_book = BorrowedBook.objects.get(
-            #     related_book=book, related_user=request.user, is_returned=False
-            # )
-            # borrowed_book.is_returned = True
-            # borrowed_book.returned_date = timezone.now()
-            # borrowed_book.save()
-            # book.stock += 1
-            # book.save()
-            # serializer = BookSerializer(book, many=False)
-            # return Response(serializer.data)
-
-            # Todo: Make a request to admin
+            BorrowReturnRequest.objects.create(
+                borrowed_book=BorrowedBook.objects.get(
+                    related_book=book, related_user=request.user, is_returned=False
+                ),
+                related_book=book,
+                requested_by=request.user,
+                action="return",
+            )
             return Response(
                 {"message": "Request sent to admin."},
                 status=status.HTTP_200_OK,
@@ -144,10 +142,17 @@ class AdminHandleRequest(GenericAPIView):
         request_id = kwargs["pk"]
         admin_action = request.data.get("action", "")
         request_entries = BorrowReturnRequest.objects.get(id=request_id)
-        if admin_action == "approve":
+        if admin_action == "approve_borrow":
             request_entries.is_approved = True
             request_entries.borrowed_book.is_borrowed = True
             request_entries.related_book.stock -= 1
+            request_entries.related_book.save()
+            request_entries.borrowed_book.save()
+            request_entries.save()
+        elif admin_action == "approve_return":
+            request_entries.is_approved = True
+            request_entries.borrowed_book.is_returned = True
+            request_entries.related_book.stock += 1
             request_entries.related_book.save()
             request_entries.borrowed_book.save()
             request_entries.save()
