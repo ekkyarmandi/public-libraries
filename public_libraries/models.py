@@ -30,6 +30,7 @@ class BorrowedBook(models.Model):
     is_returned = models.BooleanField(default=False)
     is_borrowed = models.BooleanField(default=False)
 
+
 class BorrowReturnRequest(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     borrowed_book = models.ForeignKey(BorrowedBook, on_delete=models.CASCADE)
