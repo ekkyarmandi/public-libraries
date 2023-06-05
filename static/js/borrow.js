@@ -1,8 +1,3 @@
-function getCSRF() {
-  const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
-  return csrftoken;
-}
-
 async function borrowBook(bookId) {
   const response = await fetch(`/api/v1/catalog/borrow/${bookId}/`, {
     method: 'PATCH',
@@ -12,9 +7,7 @@ async function borrowBook(bookId) {
     },
   });
   const data = await response.json();
-  const borrowedBooks = document.getElementById('borrowed-books');
-  borrowedBooks.innerHTML = data.length;
-  data.map(updateBook);
+  console.log(response, data); // render the message to the user
 }
 
 async function getBorrowedBook() {

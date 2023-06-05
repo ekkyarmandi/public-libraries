@@ -18,21 +18,78 @@
         </div>
         <div class="p-3 text-primary-emphasis bg-primary-subtle border border-primary-subtle rounded-3" style="width: 250px">
           <p class="m-0">Total Books Borrowed</p>
-          <p class="m-0 fs-1">{{number_of_borrowed}}</p>
+          <p id="borrowed-books" class="m-0 fs-1">{{number_of_borrowed}}</p>
         </div>
         <div class="p-3 text-primary-emphasis bg-primary-subtle border border-primary-subtle rounded-3" style="width: 250px">
           <p class="m-0">Total Books Returned</p>
-          <p class="m-0 fs-1">{{number_of_returned}}</p>
+          <p id="returned-books" class="m-0 fs-1">{{number_of_returned}}</p>
         </div>
       </div>
       <div class="pt-5">
         <div id="borrow-book-request">
           <h3>Borrow Book Request</h3>
+          {% csrf_token %}
+          <table class="table width-auto">
+            <thead>
+              <tr>
+                <th style="width: 20%">Timestamp</th>
+                <th style="width: 30%">User</th>
+                <th style="width: 30%">Book</th>
+                <th style="width: 20%">Confirm</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for request in borrow_requests %}
+              {% if request.is_approved == False and request.is_rejected == False %}
+              <tr>
+                <td>{{request.created}}</td>
+                <td>{{request.requested_by}}</td>
+                <td>{{request.borrowed_book.related_book}}</td>
+                <td>
+                  <div id="{{request.id}}" class="d-flex gap-1">
+                    <button class="btn btn-sm btn-success" type="button" onclick="handleRequest(this,'approve')">Confirm</button>
+                    <button class="btn btn-sm btn-danger" type="button" onclick="handleRequest(this,'reject')">Reject</button>
+                  </div>
+                </td>
+              {% endif %}
+              {% endfor %}
+            </tbody>
+          </table>
         </div>
         <div id="return-book-request">
           <h3>Return Book Request</h3>
+          <table class="table width-auto">
+            <thead>
+              <tr>
+                <th style="width: 20%">Timestamp</th>
+                <th style="width: 30%">User</th>
+                <th style="width: 30%">Book</th>
+                <th style="width: 20%">Confirm</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for request in return_requests %}
+              {% if request.is_approved == False and request.is_rejected == False %}
+              <tr>
+                <td>{{request.created}}</td>
+                <td>{{request.requested_by}}</td>
+                <td>{{request.borrowed_book.related_book}}</td>
+                <td>
+                  <div id="{{request.id}}" class="d-flex gap-1">
+                    <button class="btn btn-sm btn-success" type="button" onclick="handleRequest(this,'approve')">Confirm</button>
+                    <button class="btn btn-sm btn-danger" type="button" onclick="handleRequest(this,'reject')">Reject</button>
+                  </div>
+                </td>
+              {% endif %}
+              {% endfor %}
+            </tbody>
+          </table>
         </div>
       </div>
     </div>
 </div>
-{% endblock %}
+{% endblock content %}
+
+{% block script %}
+<script src="/static/js/admin.js"></script>
+{% endblock script%}

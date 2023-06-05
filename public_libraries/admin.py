@@ -14,11 +14,17 @@ class BookModelAdmin(admin.ModelAdmin):
 
 
 class BorrowedBookModelAdmin(admin.ModelAdmin):
-    list_display = ("related_book", "related_user", "borrowed_date", "is_returned")
+    list_display = ("related_book", "related_user", "borrowed_date", "is_borrowed", "is_returned")
 
 
 class BorrowRequest(admin.ModelAdmin):
-    list_display = ("borrowed_book", "requested_by", "action", "is_approved")
+    list_display = ("related_book", "requested_by", "action", "is_approved")
+
+    def related_book(self, obj):
+        try:
+            return obj.borrowed_book.related_book
+        except:
+            return "Borrowed Book Entry Deleted" # Todo: Add related book also to the request model
 
 
 admin.site.register(Book, BookModelAdmin)

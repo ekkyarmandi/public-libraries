@@ -1,6 +1,6 @@
 from rest_framework import viewsets
 from accounts.models import Account
-from public_libraries.models import Book, BorrowedBook
+from public_libraries.models import Book, BorrowedBook, BorrowReturnRequest
 from public_libraries.serializers import BookSerializer, BorrowedBookSerializer
 from rest_framework.response import Response
 from rest_framework import status
@@ -37,7 +37,8 @@ class BorrowBook(GenericAPIView):
 
     def patch(self, request, *args, **kwargs):
         book = Book.objects.get(id=kwargs["pk"])
-        if book.stock > 0:
+        if book.stock > 0:  # check book stock availability
+            # check number of books borrowed by user
             try:
                 borrowed = BorrowedBook.objects.filter(
                     related_user=request.user, is_returned=False
@@ -46,30 +47,61 @@ class BorrowBook(GenericAPIView):
             except:
                 borrowed = []
 
+            # check max. number of books that can be borrowed
             if len(borrowed) == 3:
                 return Response(
                     {"message": "You can only borrow 3 books."},
-                    status=status.HTTP_404_NOT_FOUND,
+                    status=status.HTTP_400_BAD_REQUEST,
                 )
+
+            # check if user alread requested to borrow this book or not
+            try:
+                request = BorrowReturnRequest.objects.get(
+                    requested_by=request.user,
+                    borrowed_book__related_book=book,
+                    action="borrow",
+                    is_approved=False,
+                )
+                return Response(
+                    {"message": "You already requested to borrow this book."},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+            except:
+                pass
+
+            # check if user already borrowed this book or not
             if len(borrowed) <= 3 and book not in borrowed:
-                BorrowedBook.objects.create(
-                    related_book=book, related_user=request.user
+                # BorrowedBook.objects.create(
+                #     related_book=book, related_user=request.user
+                # )
+                # book.stock -= 1
+                # book.save()
+                # borrowed_book = BorrowedBook.objects.filter(
+                #     related_user=request.user, is_returned=False
+                # )
+                # borrowed = [BookSerializer(b.related_book).data for b in borrowed_book]
+                # return Response(borrowed, status=status.HTTP_200_OK)
+
+                # Todo: Make a request to admin
+                BorrowReturnRequest.objects.create(
+                    borrowed_book=BorrowedBook.objects.create(
+                        related_book=book, related_user=request.user
+                    ),
+                    requested_by=request.user,
+                    action="borrow",
                 )
-                book.stock -= 1
-                book.save()
-                borrowed_book = BorrowedBook.objects.filter(
-                    related_user=request.user, is_returned=False
+                return Response(
+                    {"message": "Request sent to admin."},
+                    status=status.HTTP_200_OK,
                 )
-                borrowed = [BookSerializer(b.related_book).data for b in borrowed_book]
-                return Response(borrowed, status=status.HTTP_200_OK)
             else:
                 return Response(
                     {"message": "You already borrowed this book."},
-                    status=status.HTTP_404_NOT_FOUND,
+                    status=status.HTTP_400_BAD_REQUEST,
                 )
         else:
             return Response(
-                {"message": "Book is out of stock."}, status=status.HTTP_404_NOT_FOUND
+                {"message": "Book is out of stock."}, status=status.HTTP_400_BAD_REQUEST
             )
 
 
@@ -77,8 +109,9 @@ class ReturnBook(GenericAPIView):
     def patch(self, request, *args, **kwargs):
         book = Book.objects.get(id=kwargs["pk"])
         try:
+            # Todo: Make a request to admin
             borrowed_book = BorrowedBook.objects.get(
-                related_book=book, related_user=request.user
+                related_book=book, related_user=request.user, is_returned=False
             )
             borrowed_book.is_returned = True
             borrowed_book.returned_date = timezone.now()
@@ -90,5 +123,27 @@ class ReturnBook(GenericAPIView):
         except Exception as err:
             return Response(
                 {"message": "You didn't borrow this book.", "error": str(err)},
-                status=status.HTTP_404_NOT_FOUND,
+                status=status.HTTP_400_BAD_REQUEST,
             )
+
+
+class AdminHandleRequest(GenericAPIView):
+    def patch(self, request, *args, **kwargs):
+        request_id = kwargs["pk"]
+        admin_action = request.data.get("action", "")
+        request_entries = BorrowReturnRequest.objects.get(id=request_id)
+        if admin_action == "approve":
+            request_entries.is_approved = True
+            request_entries.borrowed_book.is_borrowed = True
+            request_entries.borrowed_book.related_book.stock -= 1
+            request_entries.borrowed_book.related_book.save()
+            request_entries.borrowed_book.save()
+            request_entries.save()
+        elif admin_action == "reject":
+            request_entries.is_rejected = True
+            request_entries.borrowed_book.delete()
+            request_entries.save()
+        return Response(
+            {"message": "Request handled successfully."},
+            status=status.HTTP_200_OK,
+        )

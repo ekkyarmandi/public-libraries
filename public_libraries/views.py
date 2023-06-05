@@ -6,7 +6,7 @@ from django.http import JsonResponse
 from django.views import View
 
 from accounts.models import Account
-from .models import Book, BorrowedBook
+from .models import Book, BorrowedBook, BorrowReturnRequest
 
 
 def clear_table(request):
@@ -51,20 +51,30 @@ class HomePage(View):
 
 
 class AdminPage(View):
+    def query_request(self, action):
+        try:
+            return BorrowReturnRequest.objects.filter(
+                action=action, is_approved=False
+            )
+        except:
+            return []
+
     def get(self, request):
         if request.user.is_authenticated:
             if request.user.is_superuser:
+                borrow_requests = self.query_request("borrow")
+                return_requests = self.query_request("return")
                 context = {
                     "number_of_books": Book.objects.count(),
                     "number_of_users": Account.objects.count() - 1,
-                    "number_of_borrowed": BorrowedBook.objects.filter(is_returned=False)
-                    .values("related_book")
-                    .distinct()
-                    .count(),
-                    "number_of_returned": BorrowedBook.objects.filter(is_returned=True)
-                    .values("related_book")
-                    .distinct()
-                    .count(),
+                    "number_of_borrowed": BorrowedBook.objects.filter(
+                        is_returned=False, is_borrowed=True
+                    ).count(),
+                    "number_of_returned": BorrowedBook.objects.filter(
+                        is_returned=True
+                    ).count(),
+                    "borrow_requests": borrow_requests,
+                    "return_requests": return_requests,
                 }
                 return render(request, "admin.html", context)
             else:
